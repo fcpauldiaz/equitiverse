@@ -19,4 +19,6 @@ __unconfig*
 coverage
 .DS_Store
 npm-debug.log*
+pnpm-debug.log*
+package-lock.json
 .cursor

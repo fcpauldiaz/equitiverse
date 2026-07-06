@@ -13,7 +13,7 @@ async function main() {
 
   if (!email || !password) {
     console.error(
-      'Usage: npm run db:seed -- admin@example.com your-password\nOr set ADMIN_EMAIL and ADMIN_PASSWORD in .env',
+      'Usage: pnpm run db:seed -- admin@example.com your-password\nOr set ADMIN_EMAIL and ADMIN_PASSWORD in .env',
     )
     process.exit(1)
   }

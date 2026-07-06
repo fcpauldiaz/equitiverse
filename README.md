@@ -7,11 +7,11 @@ Built with **TanStack Start**, **Turso/SQLite**, **Drizzle ORM**, and **Finnhub*
 ## Quick Start
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env
-npm run db:push
-npm run db:seed -- admin@edgebyrs.com your-secure-password
-npm run dev
+pnpm run db:push
+pnpm run db:seed -- admin@edgebyrs.com your-secure-password
+pnpm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
@@ -39,7 +39,7 @@ See [`.env.example`](.env.example) for all variables. Required for full function
 ## Testing
 
 ```bash
-npm run test:e2e
+pnpm run test:e2e
 ```
 
 Playwright starts a dev server on port **3100**, runs `db:push` + `db:seed`, and executes login flow tests in `e2e/login.spec.ts`. Requires `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` in `.env` (remote Turso; local `file:` URLs are not supported in the browser login path).
@@ -60,7 +60,7 @@ UI follows the [EdgebyRS](https://www.edgebyrs.com/) visual language under the *
 ## Deploy
 
 ```bash
-npm run build
+pnpm run build
 node .output/server/index.mjs
 ```
 

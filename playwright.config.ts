@@ -24,7 +24,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run test:e2e:server',
+    command: 'pnpm run test:e2e:server',
     url: baseUrl,
     reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === '1',
     timeout: 120_000,
