@@ -3,7 +3,9 @@ import { useState } from 'react'
 
 import { AppShell } from '#/components/layout/AppShell'
 import { CalloutTable } from '#/components/ui/CalloutTable'
+import { EditPositionPanel } from '#/components/ui/EditPositionPanel'
 import { SectionTitle } from '#/components/ui/SectionTitle'
+import type { CalloutWithPerformance } from '#/lib/types'
 import {
   closeCalloutFn,
   createCalloutFn,
@@ -41,6 +43,8 @@ function AdminPositionsPage() {
   )
   const [thesis, setThesis] = useState('')
   const [message, setMessage] = useState<string | null>(null)
+  const [editingCallout, setEditingCallout] =
+    useState<CalloutWithPerformance | null>(null)
 
   async function handleCreate(event: React.FormEvent) {
     event.preventDefault()
@@ -152,32 +156,24 @@ function AdminPositionsPage() {
           </div>
         </form>
 
-        <CalloutTable callouts={callouts} />
-
-        {callouts.some((c) => c.status === 'open') ? (
-          <div className="mt-[var(--space-stack-md)] flex flex-wrap gap-3">
-            {callouts
-              .filter((c) => c.status === 'open')
-              .map((position) => (
-                <div key={position.id} className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleClose(position.id)}
-                    className="btn-gradient-outline btn-secondary-light text-sm"
-                  >
-                    <span>Close {position.ticker}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(position.id)}
-                    className="btn-ghost px-4 py-2 text-sm text-rs-red"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))}
-          </div>
+        {editingCallout ? (
+          <EditPositionPanel
+            callout={editingCallout}
+            onCancel={() => setEditingCallout(null)}
+            onSaved={async () => {
+              setEditingCallout(null)
+              setMessage('Position updated.')
+              await router.invalidate()
+            }}
+          />
         ) : null}
+
+        <CalloutTable
+          callouts={callouts}
+          onEdit={setEditingCallout}
+          onClose={handleClose}
+          onDelete={handleDelete}
+        />
       </section>
     </AppShell>
   )

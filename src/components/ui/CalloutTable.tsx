@@ -5,9 +5,19 @@ import { formatPrice, formatReturnPct } from '#/lib/performance'
 
 type CalloutTableProps = {
   callouts: CalloutWithPerformance[]
+  onEdit?: (callout: CalloutWithPerformance) => void
+  onClose?: (id: string) => void
+  onDelete?: (id: string) => void
 }
 
-export function CalloutTable({ callouts }: CalloutTableProps) {
+export function CalloutTable({
+  callouts,
+  onEdit,
+  onClose,
+  onDelete,
+}: CalloutTableProps) {
+  const showActions = Boolean(onEdit || onClose || onDelete)
+
   if (callouts.length === 0) {
     return (
       <div className="rs-card rs-card-spacious flex flex-col items-center">
@@ -26,7 +36,9 @@ export function CalloutTable({ callouts }: CalloutTableProps) {
   return (
     <div className="rs-card rs-card-flush">
       <div className="overflow-x-auto">
-        <table className="data-table min-w-[760px]">
+        <table
+          className={`data-table ${showActions ? 'min-w-[980px]' : 'min-w-[760px]'}`}
+        >
           <thead>
             <tr>
               <th className="font-semibold">Ticker</th>
@@ -36,6 +48,9 @@ export function CalloutTable({ callouts }: CalloutTableProps) {
               <th className="font-semibold">Return</th>
               <th className="font-semibold">Status</th>
               <th className="font-semibold">Thesis</th>
+              {showActions ? (
+                <th className="font-semibold">Actions</th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -83,6 +98,39 @@ export function CalloutTable({ callouts }: CalloutTableProps) {
                   <td className="max-w-xs text-rs-text-light">
                     {callout.thesis ?? '—'}
                   </td>
+                  {showActions ? (
+                    <td>
+                      <div className="flex flex-wrap gap-2">
+                        {onEdit ? (
+                          <button
+                            type="button"
+                            onClick={() => onEdit(callout)}
+                            className="inline-flex cursor-pointer items-center rounded-lg border-none bg-transparent px-2 py-1 text-xs font-medium text-rs-blue transition hover:text-rs-blue/80"
+                          >
+                            Edit
+                          </button>
+                        ) : null}
+                        {callout.status === 'open' && onClose ? (
+                          <button
+                            type="button"
+                            onClick={() => onClose(callout.id)}
+                            className="btn-gradient-outline btn-secondary-light text-xs"
+                          >
+                            <span>Close</span>
+                          </button>
+                        ) : null}
+                        {onDelete ? (
+                          <button
+                            type="button"
+                            onClick={() => onDelete(callout.id)}
+                            className="inline-flex cursor-pointer items-center rounded-lg border-none bg-transparent px-2 py-1 text-xs font-medium text-rs-red transition hover:text-rs-red/80"
+                          >
+                            Delete
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                  ) : null}
                 </tr>
               )
             })}

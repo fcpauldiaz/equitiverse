@@ -264,6 +264,12 @@ const calloutInputSchema = z.object({
   thesis: z.string().optional(),
 })
 
+const updateCalloutInputSchema = calloutInputSchema.extend({
+  id: z.string(),
+  exitPrice: z.number().positive().optional(),
+  exitDate: z.string().optional(),
+})
+
 export const createCalloutFn = createServerFn({ method: 'POST' })
   .validator(calloutInputSchema)
   .handler(async ({ data }) => {
@@ -309,6 +315,56 @@ export const createCalloutFn = createServerFn({ method: 'POST' })
     }
 
     return { id, notificationsSent }
+  })
+
+export const updateCalloutFn = createServerFn({ method: 'POST' })
+  .validator(updateCalloutInputSchema)
+  .handler(async ({ data }) => {
+    await requireAdmin()
+
+    const [existing] = await db
+      .select()
+      .from(callouts)
+      .where(eq(callouts.id, data.id))
+      .limit(1)
+
+    if (!existing) {
+      return { error: 'Position not found' as const }
+    }
+
+    if (existing.status === 'closed') {
+      if (data.exitPrice == null || !data.exitDate) {
+        return {
+          error: 'Exit price and date are required for closed positions.' as const,
+        }
+      }
+    }
+
+    const ticker = data.ticker.toUpperCase()
+
+    await db
+      .update(callouts)
+      .set({
+        ticker,
+        entryPrice: data.entryPrice,
+        entryDate: new Date(data.entryDate),
+        thesis: data.thesis ?? null,
+        exitPrice:
+          existing.status === 'closed' ? data.exitPrice ?? null : existing.exitPrice,
+        exitDate:
+          existing.status === 'closed' && data.exitDate
+            ? new Date(data.exitDate)
+            : existing.exitDate,
+        updatedAt: new Date(),
+      })
+      .where(eq(callouts.id, data.id))
+
+    const provider = getMarketDataProvider()
+    if (provider && existing.status === 'open') {
+      await fetchLiveQuotes([ticker], provider)
+    }
+
+    return { success: true as const }
   })
 
 export const closeCalloutFn = createServerFn({ method: 'POST' })

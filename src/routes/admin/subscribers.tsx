@@ -143,22 +143,24 @@ function AdminSubscribersPage() {
 
         <form
           onSubmit={handleInvite}
-          className="rs-card content-stack-tight mb-[var(--space-stack-md)] md:flex md:flex-row md:items-end md:gap-[var(--space-stack-md)]"
+          className="rs-card content-stack-tight mb-[var(--space-stack-md)]"
         >
-          <label className="flex-1">
+          <label>
             <span className="field-label">Email address</span>
-            <input
-              type="email"
-              required
-              placeholder="subscriber@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="field-input"
-            />
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                type="email"
+                required
+                placeholder="subscriber@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="field-input min-w-[220px] max-w-md flex-1"
+              />
+              <button type="submit" className="btn-primary shrink-0">
+                Send invite
+              </button>
+            </div>
           </label>
-          <button type="submit" className="btn-primary md:mb-0">
-            Send invite
-          </button>
         </form>
 
         <form
