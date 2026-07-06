@@ -10,5 +10,5 @@ echo "Starting server..."
 exec ./node_modules/.bin/srvx serve --prod \
   --host="${HOST:-0.0.0.0}" \
   --port="${PORT:-3000}" \
-  --static=dist/client \
+  --static=../client \
   --entry=dist/server/server.js

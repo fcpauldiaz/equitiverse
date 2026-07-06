@@ -45,7 +45,7 @@ function AdminPositionsPage() {
   async function handleCreate(event: React.FormEvent) {
     event.preventDefault()
 
-    await createCalloutFn({
+    const result = await createCalloutFn({
       data: {
         ticker,
         entryPrice: Number(entryPrice),
@@ -57,7 +57,11 @@ function AdminPositionsPage() {
     setTicker('')
     setEntryPrice('')
     setThesis('')
-    setMessage('Position published.')
+    setMessage(
+      result.notificationsSent > 0
+        ? `Position published. Notifications sent to ${result.notificationsSent} subscribers.`
+        : 'Position published. No notification emails sent.',
+    )
     await router.invalidate()
   }
 

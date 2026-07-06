@@ -10,6 +10,7 @@ import {
 import { db } from '#/db'
 import {
   inviteTokens,
+  passwordResetTokens,
   sessions,
   subscriberPreferences,
   users,
@@ -206,6 +207,106 @@ export async function registerSubscriber(input: {
   }
 
   return user
+}
+
+const PASSWORD_RESET_DURATION_MS = 60 * 60 * 1000
+
+export async function createPasswordResetToken(
+  email: string,
+): Promise<string | null> {
+  const [user] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email.toLowerCase()))
+    .limit(1)
+
+  if (!user) {
+    return null
+  }
+
+  const [activeUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.id, user.id), isNull(users.disabledAt)))
+    .limit(1)
+
+  if (!activeUser) {
+    return null
+  }
+
+  await db
+    .delete(passwordResetTokens)
+    .where(
+      and(
+        eq(passwordResetTokens.userId, user.id),
+        isNull(passwordResetTokens.usedAt),
+      ),
+    )
+
+  const token = nanoid(48)
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_DURATION_MS)
+
+  await db.insert(passwordResetTokens).values({
+    token,
+    userId: user.id,
+    expiresAt,
+  })
+
+  return token
+}
+
+export async function validatePasswordResetToken(token: string) {
+  const [row] = await db
+    .select({
+      token: passwordResetTokens.token,
+      email: users.email,
+    })
+    .from(passwordResetTokens)
+    .innerJoin(users, eq(passwordResetTokens.userId, users.id))
+    .where(
+      and(
+        eq(passwordResetTokens.token, token),
+        gt(passwordResetTokens.expiresAt, new Date()),
+        isNull(passwordResetTokens.usedAt),
+        isNull(users.disabledAt),
+      ),
+    )
+    .limit(1)
+
+  return row ?? null
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+): Promise<void> {
+  const resetToken = await validatePasswordResetToken(token)
+
+  if (!resetToken) {
+    throw new Error('INVALID_RESET_TOKEN')
+  }
+
+  const passwordHash = await hashPassword(newPassword)
+
+  await db
+    .update(users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(users.email, resetToken.email))
+
+  await db
+    .update(passwordResetTokens)
+    .set({ usedAt: new Date() })
+    .where(eq(passwordResetTokens.token, token))
+
+  const [user] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, resetToken.email))
+    .limit(1)
+
+  if (user) {
+    await db.delete(sessions).where(eq(sessions.userId, user.id))
+  }
 }
 
 export async function loginUser(

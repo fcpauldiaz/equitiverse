@@ -63,7 +63,7 @@ Build with the included `Dockerfile` (Coolify, etc.):
 
 ```bash
 pnpm run build
-node .output/server/index.mjs
+pnpm start
 ```
 
 On container start, `drizzle-kit push` runs automatically against `TURSO_DATABASE_URL` before the server boots. Set `SKIP_DB_PUSH=true` to skip (e.g. local debugging). `db:seed` is still manual:

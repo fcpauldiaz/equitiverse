@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { desc, eq, isNull } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 
@@ -13,15 +13,23 @@ import {
 } from '#/db/schema'
 import {
   createInviteToken,
+  createPasswordResetToken,
   destroySession,
   getCurrentUser,
   loginUser,
   registerSubscriber,
   requireAdmin,
   requireUser,
+  resetPassword,
   validateInviteToken,
+  validatePasswordResetToken,
 } from '#/lib/auth'
-import { sendDigestBatch, sendInviteEmail } from '#/lib/email'
+import {
+  sendDigestBatch,
+  sendInviteEmail,
+  sendNewPositionNotificationBatch,
+  sendPasswordResetEmail,
+} from '#/lib/email'
 import {
   createFinnhubProvider,
   fetchLiveQuotes,
@@ -30,11 +38,88 @@ import {
   refreshQuotesForOpenCallouts,
 } from '#/lib/market-data'
 import {
+  calculateReturnPct,
   enrichCallout,
   formatReturnPct,
   summarizePortfolio,
 } from '#/lib/performance'
-import type { CalloutWithPerformance, TickerQuote } from '#/lib/types'
+import type {
+  CalloutWithPerformance,
+  DigestFrequency,
+  NewPositionNotification,
+  TickerQuote,
+} from '#/lib/types'
+
+type SubscriberRecipient = {
+  userId: string
+  email: string
+  digestFrequency: DigestFrequency
+  unsubscribedAt: Date | null
+  disabledAt: Date | null
+}
+
+function isDigestEligible(
+  recipient: Pick<
+    SubscriberRecipient,
+    'unsubscribedAt' | 'disabledAt' | 'digestFrequency'
+  >,
+): boolean {
+  return (
+    !recipient.unsubscribedAt &&
+    !recipient.disabledAt &&
+    recipient.digestFrequency !== 'none'
+  )
+}
+
+async function getSubscriberRecipients(): Promise<SubscriberRecipient[]> {
+  return db
+    .select({
+      userId: users.id,
+      email: users.email,
+      digestFrequency: subscriberPreferences.digestFrequency,
+      unsubscribedAt: subscriberPreferences.unsubscribedAt,
+      disabledAt: users.disabledAt,
+    })
+    .from(users)
+    .innerJoin(
+      subscriberPreferences,
+      eq(users.id, subscriberPreferences.userId),
+    )
+    .where(eq(users.role, 'subscriber'))
+}
+
+async function getDigestEligibleSubscribers(): Promise<
+  Array<{ userId: string; email: string }>
+> {
+  const recipients = await getSubscriberRecipients()
+
+  return recipients
+    .filter(isDigestEligible)
+    .map((recipient) => ({
+      userId: recipient.userId,
+      email: recipient.email,
+    }))
+}
+
+function buildNewPositionNotification(input: {
+  ticker: string
+  entryPrice: number
+  entryDate: Date
+  thesis: string | null
+  currentPrice: number | null
+}): NewPositionNotification {
+  return {
+    ticker: input.ticker,
+    entryPrice: input.entryPrice,
+    entryDate: input.entryDate,
+    thesis: input.thesis,
+    currentPrice: input.currentPrice,
+    returnPct:
+      input.currentPrice !== null
+        ? calculateReturnPct(input.entryPrice, input.currentPrice)
+        : null,
+  }
+}
 
 async function loadPortfolioData(): Promise<{
   callouts: CalloutWithPerformance[]
@@ -201,7 +286,28 @@ export const createCalloutFn = createServerFn({ method: 'POST' })
       await fetchLiveQuotes([ticker], provider)
     }
 
-    return { id }
+    let notificationsSent = 0
+
+    try {
+      const recipients = await getDigestEligibleSubscribers()
+      const [quote] = await getQuotesForTickers([ticker])
+      const position = buildNewPositionNotification({
+        ticker,
+        entryPrice: data.entryPrice,
+        entryDate: new Date(data.entryDate),
+        thesis: data.thesis ?? null,
+        currentPrice: quote?.price ?? null,
+      })
+
+      notificationsSent = await sendNewPositionNotificationBatch({
+        recipients,
+        position,
+      })
+    } catch (error) {
+      console.error('Failed to send new position notifications:', error)
+    }
+
+    return { id, notificationsSent }
   })
 
 export const closeCalloutFn = createServerFn({ method: 'POST' })
@@ -346,24 +452,9 @@ export const sendDigestNowFn = createServerFn({ method: 'POST' })
     await requireAdmin()
 
     const portfolio = await loadPortfolioData()
-    const recipients = await db
-      .select({
-        userId: users.id,
-        email: users.email,
-        digestFrequency: subscriberPreferences.digestFrequency,
-        unsubscribedAt: subscriberPreferences.unsubscribedAt,
-        disabledAt: users.disabledAt,
-      })
-      .from(users)
-      .innerJoin(
-        subscriberPreferences,
-        eq(users.id, subscriberPreferences.userId),
-      )
-      .where(eq(users.role, 'subscriber'))
+    const recipients = await getSubscriberRecipients()
 
-    const activeRecipients = recipients.filter(
-      (r) => !r.unsubscribedAt && !r.disabledAt && r.digestFrequency !== 'none',
-    )
+    const activeRecipients = recipients.filter(isDigestEligible)
 
     const filtered =
       data.frequency === 'manual'
@@ -399,6 +490,53 @@ export const getInviteInfoFn = createServerFn({ method: 'GET' })
     }
 
     return { valid: true as const, email: invite.email }
+  })
+
+export const requestPasswordResetFn = createServerFn({ method: 'POST' })
+  .validator(z.object({ email: z.string().email() }))
+  .handler(async ({ data }) => {
+    const token = await createPasswordResetToken(data.email)
+
+    if (token) {
+      await sendPasswordResetEmail({ email: data.email.toLowerCase(), token })
+    }
+
+    return { success: true as const }
+  })
+
+export const getPasswordResetInfoFn = createServerFn({ method: 'GET' })
+  .validator(z.object({ token: z.string() }))
+  .handler(async ({ data }) => {
+    const resetToken = await validatePasswordResetToken(data.token)
+
+    if (!resetToken) {
+      return { valid: false as const }
+    }
+
+    return { valid: true as const, email: resetToken.email }
+  })
+
+export const resetPasswordFn = createServerFn({ method: 'POST' })
+  .validator(
+    z.object({
+      token: z.string(),
+      password: z.string().min(8),
+    }),
+  )
+  .handler(async ({ data }) => {
+    try {
+      await resetPassword(data.token, data.password)
+      return { success: true as const }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Password reset failed'
+
+      if (message === 'INVALID_RESET_TOKEN') {
+        return { error: 'Invalid or expired reset link' }
+      }
+
+      return { error: 'Password reset failed' }
+    }
   })
 
 export const getSettingsFn = createServerFn({ method: 'GET' }).handler(
@@ -441,26 +579,10 @@ export const getSettingsFn = createServerFn({ method: 'GET' }).handler(
 export async function runDigestCron(frequency: 'daily' | 'weekly') {
   const portfolio = await loadPortfolioData()
 
-  const recipients = await db
-    .select({
-      userId: users.id,
-      email: users.email,
-      digestFrequency: subscriberPreferences.digestFrequency,
-      unsubscribedAt: subscriberPreferences.unsubscribedAt,
-      disabledAt: users.disabledAt,
-    })
-    .from(users)
-    .innerJoin(
-      subscriberPreferences,
-      eq(users.id, subscriberPreferences.userId),
-    )
-    .where(eq(users.role, 'subscriber'))
+  const recipients = await getSubscriberRecipients()
 
   const active = recipients.filter(
-    (r) =>
-      !r.unsubscribedAt &&
-      !r.disabledAt &&
-      r.digestFrequency === frequency,
+    (r) => isDigestEligible(r) && r.digestFrequency === frequency,
   )
 
   const sent = await sendDigestBatch({

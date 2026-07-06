@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, redirect, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { z } from 'zod'
 
@@ -117,6 +117,12 @@ function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="field-input"
               />
+              <Link
+                to="/forgot-password"
+                className="mt-2 inline-block text-sm text-rs-blue hover:underline"
+              >
+                Forgot password?
+              </Link>
             </label>
 
             {error ? <AuthAlert message={error} /> : null}

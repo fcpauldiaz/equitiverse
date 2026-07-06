@@ -39,3 +39,12 @@ export type TickerQuote = {
   price: number
   changePct: number | null
 }
+
+export type NewPositionNotification = {
+  ticker: string
+  entryPrice: number
+  entryDate: Date
+  thesis: string | null
+  currentPrice: number | null
+  returnPct: number | null
+}

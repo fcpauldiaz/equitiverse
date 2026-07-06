@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResetPasswordTokenRouteImport } from './routes/reset-password/$token'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AdminSubscribersRouteImport } from './routes/admin/subscribers'
@@ -31,6 +33,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -39,6 +46,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordTokenRoute = ResetPasswordTokenRouteImport.update({
+  id: '/reset-password/$token',
+  path: '/reset-password/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -80,6 +92,7 @@ const ApiCronRefreshQuotesRoute = ApiCronRefreshQuotesRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/admin/positions': typeof AdminPositionsRoute
@@ -87,12 +100,14 @@ export interface FileRoutesByFullPath {
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/api/cron/refresh-quotes': typeof ApiCronRefreshQuotesRoute
   '/api/cron/send-digest': typeof ApiCronSendDigestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/admin/positions': typeof AdminPositionsRoute
@@ -100,6 +115,7 @@ export interface FileRoutesByTo {
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/api/cron/refresh-quotes': typeof ApiCronRefreshQuotesRoute
   '/api/cron/send-digest': typeof ApiCronSendDigestRoute
 }
@@ -107,6 +123,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/admin/positions': typeof AdminPositionsRoute
@@ -114,6 +131,7 @@ export interface FileRoutesById {
   '/admin/subscribers': typeof AdminSubscribersRoute
   '/api/health': typeof ApiHealthRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/api/cron/refresh-quotes': typeof ApiCronRefreshQuotesRoute
   '/api/cron/send-digest': typeof ApiCronSendDigestRoute
 }
@@ -122,6 +140,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
     | '/settings'
     | '/admin/positions'
@@ -129,12 +148,14 @@ export interface FileRouteTypes {
     | '/admin/subscribers'
     | '/api/health'
     | '/invite/$token'
+    | '/reset-password/$token'
     | '/api/cron/refresh-quotes'
     | '/api/cron/send-digest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
     | '/settings'
     | '/admin/positions'
@@ -142,12 +163,14 @@ export interface FileRouteTypes {
     | '/admin/subscribers'
     | '/api/health'
     | '/invite/$token'
+    | '/reset-password/$token'
     | '/api/cron/refresh-quotes'
     | '/api/cron/send-digest'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
     | '/settings'
     | '/admin/positions'
@@ -155,6 +178,7 @@ export interface FileRouteTypes {
     | '/admin/subscribers'
     | '/api/health'
     | '/invite/$token'
+    | '/reset-password/$token'
     | '/api/cron/refresh-quotes'
     | '/api/cron/send-digest'
   fileRoutesById: FileRoutesById
@@ -162,6 +186,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
   AdminPositionsRoute: typeof AdminPositionsRoute
@@ -169,6 +194,7 @@ export interface RootRouteChildren {
   AdminSubscribersRoute: typeof AdminSubscribersRoute
   ApiHealthRoute: typeof ApiHealthRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  ResetPasswordTokenRoute: typeof ResetPasswordTokenRoute
   ApiCronRefreshQuotesRoute: typeof ApiCronRefreshQuotesRoute
   ApiCronSendDigestRoute: typeof ApiCronSendDigestRoute
 }
@@ -189,6 +215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -201,6 +234,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password/$token': {
+      id: '/reset-password/$token'
+      path: '/reset-password/$token'
+      fullPath: '/reset-password/$token'
+      preLoaderRoute: typeof ResetPasswordTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -258,6 +298,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
   AdminPositionsRoute: AdminPositionsRoute,
@@ -265,6 +306,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSubscribersRoute: AdminSubscribersRoute,
   ApiHealthRoute: ApiHealthRoute,
   InviteTokenRoute: InviteTokenRoute,
+  ResetPasswordTokenRoute: ResetPasswordTokenRoute,
   ApiCronRefreshQuotesRoute: ApiCronRefreshQuotesRoute,
   ApiCronSendDigestRoute: ApiCronSendDigestRoute,
 }

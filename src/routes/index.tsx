@@ -1,6 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import {
+  Activity,
+  BarChart3,
+  Bell,
+  LayoutDashboard,
+  Mail,
+  Shield,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 import { AppShell } from '#/components/layout/AppShell'
+import { SectionTitle } from '#/components/ui/SectionTitle'
 import { getSessionFn } from '#/server/functions'
 
 export const Route = createFileRoute('/')({
@@ -8,20 +18,56 @@ export const Route = createFileRoute('/')({
   component: HomePage,
 })
 
-const features = [
+type Feature = {
+  title: string
+  body: string
+  icon: LucideIcon
+}
+
+const features: Feature[] = [
   {
-    title: 'Global Equity Positions',
-    body: 'USA, Europe, and Asia positions with entry thesis and performance tracking.',
+    title: 'Performance Dashboard',
+    body: 'View every open and closed position with entry price, current quote, return %, and status in one place.',
+    icon: LayoutDashboard,
+  },
+  {
+    title: 'Portfolio Analytics',
+    body: 'Track open and closed counts, average return, and best performer across the full RS equity book.',
+    icon: BarChart3,
   },
   {
     title: 'Delayed Market Prices',
-    body: 'Current quotes refresh during market hours so subscribers see up-to-date returns.',
+    body: 'Quotes refresh during market hours so subscribers always see up-to-date performance on active positions.',
+    icon: Activity,
+  },
+  {
+    title: 'New Position Alerts',
+    body: 'Get an email the moment a new position is published — ticker, entry, thesis, and a link to the dashboard.',
+    icon: Bell,
   },
   {
     title: 'Email Digests',
-    body: 'Weekly or daily summaries delivered to your inbox with one-click unsubscribe.',
+    body: 'Choose daily or weekly portfolio summaries delivered to your inbox, with one-click unsubscribe.',
+    icon: Mail,
   },
-] as const
+  {
+    title: 'Invite-Only Access',
+    body: 'A private subscriber community. Admins invite members via secure links — no public sign-up.',
+    icon: Shield,
+  },
+]
+
+function FeatureCard({ title, body, icon: Icon }: Feature) {
+  return (
+    <div className="rs-card">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-rs-blue/10 text-rs-blue">
+        <Icon className="h-5 w-5" aria-hidden />
+      </div>
+      <h3 className="gradient-text-blue mt-5 text-lg font-bold">{title}</h3>
+      <p className="mt-3 text-sm leading-relaxed text-rs-text-light">{body}</p>
+    </div>
+  )
+}
 
 function HomePage() {
   const user = Route.useLoaderData()
@@ -52,15 +98,18 @@ function HomePage() {
           </div>
         </div>
 
-        <div className="feature-grid">
-          {features.map((item) => (
-            <div key={item.title} className="rs-card">
-              <h3 className="gradient-text-blue text-lg font-bold">{item.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-rs-text-light">
-                {item.body}
-              </p>
-            </div>
-          ))}
+        <div className="mt-[var(--space-block)]">
+          <SectionTitle
+            label="Platform"
+            title="Everything in one place"
+            description="EquitiVerse gives EdgebyRS subscribers real-time visibility into the equity book — from live performance to email updates."
+          />
+
+          <div className="feature-grid">
+            {features.map((feature) => (
+              <FeatureCard key={feature.title} {...feature} />
+            ))}
+          </div>
         </div>
       </section>
     </AppShell>
