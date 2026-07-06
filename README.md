@@ -66,6 +66,12 @@ pnpm run build
 node .output/server/index.mjs
 ```
 
+On container start, `drizzle-kit push` runs automatically against `TURSO_DATABASE_URL` before the server boots. Set `SKIP_DB_PUSH=true` to skip (e.g. local debugging). `db:seed` is still manual:
+
+```bash
+pnpm run db:seed
+```
+
 Quotes are cached in the `quote_cache` SQLite table (60s during market hours, 15m off hours) to stay within Finnhub's free tier.
 
 Configure platform cron to hit `/api/cron/refresh-quotes` (every 5–10 min during market hours) and `/api/cron/send-digest?frequency=weekly`.
