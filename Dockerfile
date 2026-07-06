@@ -22,7 +22,7 @@ ENV PORT=3000
 
 RUN useradd --system --uid 1001 --create-home appuser
 
-COPY --from=build /app/.output ./.output
+COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/drizzle.config.ts ./
 COPY --from=build /app/src/db ./src/db

@@ -7,4 +7,8 @@ if [ "${SKIP_DB_PUSH:-}" != "true" ]; then
 fi
 
 echo "Starting server..."
-exec node .output/server/index.mjs
+exec ./node_modules/.bin/srvx serve --prod \
+  --host="${HOST:-0.0.0.0}" \
+  --port="${PORT:-3000}" \
+  --static=dist/client \
+  --entry=dist/server/server.js

@@ -96,7 +96,7 @@ export const getSessionFn = createServerFn({ method: 'GET' }).handler(
 )
 
 export const loginFn = createServerFn({ method: 'POST' })
-  .inputValidator(
+  .validator(
     z.object({
       email: z.string().email(),
       password: z.string().min(8),
@@ -116,7 +116,7 @@ export const logoutFn = createServerFn({ method: 'POST' }).handler(async () => {
 })
 
 export const registerFn = createServerFn({ method: 'POST' })
-  .inputValidator(
+  .validator(
     z.object({
       email: z.string().email(),
       password: z.string().min(8),
@@ -179,7 +179,7 @@ const calloutInputSchema = z.object({
 })
 
 export const createCalloutFn = createServerFn({ method: 'POST' })
-  .inputValidator(calloutInputSchema)
+  .validator(calloutInputSchema)
   .handler(async ({ data }) => {
     const admin = await requireAdmin()
 
@@ -205,7 +205,7 @@ export const createCalloutFn = createServerFn({ method: 'POST' })
   })
 
 export const closeCalloutFn = createServerFn({ method: 'POST' })
-  .inputValidator(
+  .validator(
     z.object({
       id: z.string(),
       exitPrice: z.number().positive(),
@@ -229,7 +229,7 @@ export const closeCalloutFn = createServerFn({ method: 'POST' })
   })
 
 export const deleteCalloutFn = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({ id: z.string() }))
+  .validator(z.object({ id: z.string() }))
   .handler(async ({ data }) => {
     await requireAdmin()
     await db.delete(callouts).where(eq(callouts.id, data.id))
@@ -265,7 +265,7 @@ export const getSubscribersFn = createServerFn({ method: 'GET' }).handler(
 )
 
 export const inviteSubscriberFn = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({ email: z.string().email() }))
+  .validator(z.object({ email: z.string().email() }))
   .handler(async ({ data }) => {
     const admin = await requireAdmin()
     const token = await createInviteToken(data.email, admin.id)
@@ -279,7 +279,7 @@ export const inviteSubscriberFn = createServerFn({ method: 'POST' })
   })
 
 export const disableSubscriberFn = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({ userId: z.string() }))
+  .validator(z.object({ userId: z.string() }))
   .handler(async ({ data }) => {
     await requireAdmin()
 
@@ -292,7 +292,7 @@ export const disableSubscriberFn = createServerFn({ method: 'POST' })
   })
 
 export const updateDigestPreferenceFn = createServerFn({ method: 'POST' })
-  .inputValidator(
+  .validator(
     z.object({
       digestFrequency: z.enum(['daily', 'weekly', 'none']),
       unsubscribe: z.boolean().optional(),
@@ -337,7 +337,7 @@ export const refreshQuotesFn = createServerFn({ method: 'POST' }).handler(
 )
 
 export const sendDigestNowFn = createServerFn({ method: 'POST' })
-  .inputValidator(
+  .validator(
     z.object({
       frequency: z.enum(['daily', 'weekly', 'manual']).default('manual'),
     }),
@@ -390,7 +390,7 @@ export const sendDigestNowFn = createServerFn({ method: 'POST' })
   })
 
 export const getInviteInfoFn = createServerFn({ method: 'GET' })
-  .inputValidator(z.object({ token: z.string() }))
+  .validator(z.object({ token: z.string() }))
   .handler(async ({ data }) => {
     const invite = await validateInviteToken(data.token)
 

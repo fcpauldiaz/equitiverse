@@ -12,14 +12,13 @@ import { dashboardQueryOptions } from '#/lib/queries/dashboard'
 import { getSessionFn } from '#/server/functions'
 
 export const Route = createFileRoute('/dashboard')({
-  loader: async ({ context }) => {
+  preload: false,
+  loader: async () => {
     const user = await getSessionFn()
 
     if (!user) {
       throw redirect({ to: '/login', search: { reason: 'auth_required' } })
     }
-
-    await context.queryClient.ensureQueryData(dashboardQueryOptions())
 
     return { user }
   },
