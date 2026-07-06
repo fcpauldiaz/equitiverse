@@ -1,0 +1,52 @@
+@import "@fontsource/montserrat/400.css";
+@import "@fontsource/montserrat/500.css";
+@import "@fontsource/montserrat/600.css";
+@import "@fontsource/montserrat/700.css";
+
+@theme {
+  --color-rs-dark: #131517;
+  --color-rs-surface: #ffffff;
+  --color-rs-bg: #f0f1f4;
+  --color-rs-bg-muted: #f0f1f4;
+  --color-rs-border: #ededed;
+  --color-rs-text: #4e4e4e;
+  --color-rs-text-light: #7c858a;
+  --color-rs-text-muted: rgb(78 78 78 / 70%);
+  --color-rs-blue: #0080ff;
+  --color-rs-green: #48ac66;
+  --color-rs-red: #dd0000;
+  --color-rs-purple: #3d0377;
+  --color-rs-dark-text: #363f44;
+  --color-rs-blue-soft: rgba(0, 128, 255, 0.12);
+  --color-rs-green-soft: rgba(72, 172, 102, 0.12);
+  --color-rs-red-soft: rgba(221, 0, 0, 0.08);
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --multi-gradient: linear-gradient(
+    135deg,
+    #0080ff 0%,
+    #8f00ff 50%,
+    #ffbe00 100%
+  );
+  --purple-gradient: linear-gradient(135deg, #3d0377 0%, #8f00ff 100%);
+  --blue-gradient: linear-gradient(135deg, #0080ff 0%, #63b1ff 100%);
+  --card-shadow: 0 0 35px 3px rgba(18, 59, 140, 0.12);
+  --smooth-animation: all 0.5s ease;
+
+  --space-page-x: 1rem;
+  --space-page-x-md: 1.5rem;
+  --space-page-y: 2rem;
+  --space-page-y-md: 2.5rem;
+  --space-page-y-hero: 4rem;
+  --space-page-y-hero-md: 6rem;
+  --space-header-y: 0.875rem;
+  --space-header-y-md: 1rem;
+  --space-card: 1.25rem;
+  --space-card-md: 1.5rem;
+  --space-section: 2rem;
+  --space-block: 2.5rem;
+  --space-stack: 1rem;
+  --space-stack-md: 1.5rem;
+}
