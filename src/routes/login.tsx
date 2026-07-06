@@ -1,11 +1,12 @@
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { z } from 'zod'
 
 import { AppShell } from '#/components/layout/AppShell'
 import { AuthAlert } from '#/components/ui/AuthAlert'
 import { Logo } from '#/components/ui/Logo'
 import { getAuthErrorMessage, getLoginReasonMessage } from '#/lib/auth-form'
+import { useHydrated } from '#/lib/hydration'
 import { getSessionFn, loginFn } from '#/server/functions'
 
 const loginSearchSchema = z.object({
@@ -34,11 +35,7 @@ function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    setReady(true)
-  }, [])
+  const ready = useHydrated()
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
