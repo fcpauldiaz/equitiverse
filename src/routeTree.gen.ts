@@ -14,12 +14,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AdminSubscribersRouteImport } from './routes/admin/subscribers'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminPositionsRouteImport } from './routes/admin/positions'
-import { Route as ApiCronSendDigestRouteImport } from './routes/api/cron/send-digest'
-import { Route as ApiCronRefreshQuotesRouteImport } from './routes/api/cron/refresh-quotes'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -46,11 +43,6 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiHealthRoute = ApiHealthRouteImport.update({
-  id: '/api/health',
-  path: '/api/health',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminSubscribersRoute = AdminSubscribersRouteImport.update({
   id: '/admin/subscribers',
   path: '/admin/subscribers',
@@ -66,16 +58,6 @@ const AdminPositionsRoute = AdminPositionsRouteImport.update({
   path: '/admin/positions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCronSendDigestRoute = ApiCronSendDigestRouteImport.update({
-  id: '/api/cron/send-digest',
-  path: '/api/cron/send-digest',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCronRefreshQuotesRoute = ApiCronRefreshQuotesRouteImport.update({
-  id: '/api/cron/refresh-quotes',
-  path: '/api/cron/refresh-quotes',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -85,10 +67,7 @@ export interface FileRoutesByFullPath {
   '/admin/positions': typeof AdminPositionsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/subscribers': typeof AdminSubscribersRoute
-  '/api/health': typeof ApiHealthRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/api/cron/refresh-quotes': typeof ApiCronRefreshQuotesRoute
-  '/api/cron/send-digest': typeof ApiCronSendDigestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -98,10 +77,7 @@ export interface FileRoutesByTo {
   '/admin/positions': typeof AdminPositionsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/subscribers': typeof AdminSubscribersRoute
-  '/api/health': typeof ApiHealthRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/api/cron/refresh-quotes': typeof ApiCronRefreshQuotesRoute
-  '/api/cron/send-digest': typeof ApiCronSendDigestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -112,10 +88,7 @@ export interface FileRoutesById {
   '/admin/positions': typeof AdminPositionsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/subscribers': typeof AdminSubscribersRoute
-  '/api/health': typeof ApiHealthRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/api/cron/refresh-quotes': typeof ApiCronRefreshQuotesRoute
-  '/api/cron/send-digest': typeof ApiCronSendDigestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,10 +100,7 @@ export interface FileRouteTypes {
     | '/admin/positions'
     | '/admin/settings'
     | '/admin/subscribers'
-    | '/api/health'
     | '/invite/$token'
-    | '/api/cron/refresh-quotes'
-    | '/api/cron/send-digest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -140,10 +110,7 @@ export interface FileRouteTypes {
     | '/admin/positions'
     | '/admin/settings'
     | '/admin/subscribers'
-    | '/api/health'
     | '/invite/$token'
-    | '/api/cron/refresh-quotes'
-    | '/api/cron/send-digest'
   id:
     | '__root__'
     | '/'
@@ -153,10 +120,7 @@ export interface FileRouteTypes {
     | '/admin/positions'
     | '/admin/settings'
     | '/admin/subscribers'
-    | '/api/health'
     | '/invite/$token'
-    | '/api/cron/refresh-quotes'
-    | '/api/cron/send-digest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -167,10 +131,7 @@ export interface RootRouteChildren {
   AdminPositionsRoute: typeof AdminPositionsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSubscribersRoute: typeof AdminSubscribersRoute
-  ApiHealthRoute: typeof ApiHealthRoute
   InviteTokenRoute: typeof InviteTokenRoute
-  ApiCronRefreshQuotesRoute: typeof ApiCronRefreshQuotesRoute
-  ApiCronSendDigestRoute: typeof ApiCronSendDigestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -210,13 +171,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/health': {
-      id: '/api/health'
-      path: '/api/health'
-      fullPath: '/api/health'
-      preLoaderRoute: typeof ApiHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/subscribers': {
       id: '/admin/subscribers'
       path: '/admin/subscribers'
@@ -238,20 +192,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPositionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/cron/send-digest': {
-      id: '/api/cron/send-digest'
-      path: '/api/cron/send-digest'
-      fullPath: '/api/cron/send-digest'
-      preLoaderRoute: typeof ApiCronSendDigestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/cron/refresh-quotes': {
-      id: '/api/cron/refresh-quotes'
-      path: '/api/cron/refresh-quotes'
-      fullPath: '/api/cron/refresh-quotes'
-      preLoaderRoute: typeof ApiCronRefreshQuotesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -263,10 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminPositionsRoute: AdminPositionsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSubscribersRoute: AdminSubscribersRoute,
-  ApiHealthRoute: ApiHealthRoute,
   InviteTokenRoute: InviteTokenRoute,
-  ApiCronRefreshQuotesRoute: ApiCronRefreshQuotesRoute,
-  ApiCronSendDigestRoute: ApiCronSendDigestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
