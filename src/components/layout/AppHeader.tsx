@@ -68,7 +68,7 @@ export function AppHeader({ user }: AppHeaderProps) {
 
         <button
           type="button"
-          className="btn-ghost ml-auto md:ml-0 md:hidden"
+          className="ml-auto inline-flex items-center justify-center rounded-lg border-none bg-transparent p-2 text-rs-text-light transition hover:text-rs-text md:hidden"
           aria-expanded={open}
           aria-label={open ? 'Close menu' : 'Open menu'}
           onClick={() => setOpen((value) => !value)}
