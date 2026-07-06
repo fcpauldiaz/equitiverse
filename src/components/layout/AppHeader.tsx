@@ -1,8 +1,9 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouter } from '@tanstack/react-router'
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { Logo } from '#/components/ui/Logo'
+import { logout } from '#/lib/logout'
 import type { SessionUser } from '#/lib/types'
 
 type AppHeaderProps = {
@@ -21,10 +22,16 @@ const adminLinks = [
 ] as const
 
 export function AppHeader({ user }: AppHeaderProps) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
 
   const links =
     user?.role === 'admin' ? [...subscriberLinks, ...adminLinks] : subscriberLinks
+
+  async function handleLogout() {
+    setOpen(false)
+    await logout(router)
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-rs-border bg-white">
@@ -33,16 +40,27 @@ export function AppHeader({ user }: AppHeaderProps) {
 
         <nav className="ml-auto hidden items-center md:flex">
           {user
-            ? links.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className="nav-link"
-                  activeProps={{ 'data-status': 'active' }}
-                >
-                  {link.label}
-                </Link>
-              ))
+            ? (
+                <>
+                  {links.map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      className="nav-link"
+                      activeProps={{ 'data-status': 'active' }}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="nav-link cursor-pointer border-none bg-transparent"
+                  >
+                    Sign out
+                  </button>
+                </>
+              )
             : (
                 <Link
                   to="/login"
@@ -81,17 +99,28 @@ export function AppHeader({ user }: AppHeaderProps) {
         <div className="border-t border-rs-border bg-white shell-gutter py-3 md:hidden">
           <nav className="flex flex-col gap-1">
             {user
-              ? links.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className="nav-link rounded-lg px-3 py-2.5"
-                    activeProps={{ 'data-status': 'active' }}
-                    onClick={() => setOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))
+              ? (
+                  <>
+                    {links.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className="nav-link rounded-lg px-3 py-2.5"
+                        activeProps={{ 'data-status': 'active' }}
+                        onClick={() => setOpen(false)}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="nav-link w-full rounded-lg px-3 py-2.5 text-left"
+                    >
+                      Sign out
+                    </button>
+                  </>
+                )
               : (
                   <Link
                     to="/login"

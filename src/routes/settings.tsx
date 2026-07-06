@@ -6,9 +6,9 @@ import { SectionTitle } from '#/components/ui/SectionTitle'
 import {
   getSessionFn,
   getSettingsFn,
-  logoutFn,
   updateDigestPreferenceFn,
 } from '#/server/functions'
+import { logout } from '#/lib/logout'
 import type { DigestFrequency } from '#/lib/types'
 
 export const Route = createFileRoute('/settings')({
@@ -47,9 +47,7 @@ function SettingsPage() {
   }
 
   async function handleLogout() {
-    await logoutFn()
-    await router.invalidate()
-    await router.navigate({ to: '/login' })
+    await logout(router)
   }
 
   return (
