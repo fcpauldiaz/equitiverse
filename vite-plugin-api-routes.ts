@@ -4,10 +4,11 @@ import { dirname, resolve } from 'node:path'
 import * as esbuild from 'esbuild'
 import type { Plugin } from 'vite'
 
-const SSR_RENDERER_PATTERN =
-  /function ssrRenderer\(\{ req \}\) \{\n\treturn fetch\(req, \{ viteEnv: "ssr" \}\);\n\}/
+const SSR_RENDERER_BLOCK =
+  /\/\*\* @param \{\{ req: Request \}\} HTTPEvent \*\/\n(?:async )?function ssrRenderer\(\{ req \}\) \{[\s\S]*?\n\}/
 
-const SSR_RENDERER_PATCH = String.raw`async function ssrRenderer({ req }) {
+const SSR_RENDERER_PATCH = String.raw`/** @param {{ req: Request }} HTTPEvent */
+async function ssrRenderer({ req }) {
   const url = new URL(req.url);
   if (url.pathname.startsWith("/api/")) {
     const { handleApiRequest } = await import("./chunks/_/api-handlers.mjs");
@@ -22,7 +23,14 @@ const SSR_RENDERER_PATCH = String.raw`async function ssrRenderer({ req }) {
       return apiResponse;
     }
   }
-  return fetch(req, { viteEnv: "ssr" });
+  const { default: ssrService } = await import("./chunks/build/server.mjs");
+  const request = new Request(new URL(url.pathname + url.search, "http://localhost"), {
+    method: req.method,
+    headers: new Headers(req.headers),
+    body: req.method === "GET" || req.method === "HEAD" ? undefined : req.body,
+    duplex: req.body ? "half" : undefined,
+  });
+  return ssrService.fetch(request);
 }`
 
 async function bundleApiHandlers(rootDir: string) {
@@ -48,11 +56,14 @@ async function patchSsrRenderer(rootDir: string) {
   const indexPath = resolve(rootDir, '.output/server/index.mjs')
   const code = await readFile(indexPath, 'utf8')
 
-  if (!SSR_RENDERER_PATTERN.test(code)) {
+  if (!SSR_RENDERER_BLOCK.test(code)) {
     throw new Error('Could not patch ssrRenderer in .output/server/index.mjs')
   }
 
-  await writeFile(indexPath, code.replace(SSR_RENDERER_PATTERN, SSR_RENDERER_PATCH))
+  await writeFile(
+    indexPath,
+    code.replace(SSR_RENDERER_BLOCK, SSR_RENDERER_PATCH),
+  )
 }
 
 export async function applyApiRouteProductionFix(rootDir: string) {
