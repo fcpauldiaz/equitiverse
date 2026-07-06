@@ -3,13 +3,35 @@ import { formatPrice } from '#/lib/performance'
 
 type PriceTickerProps = {
   quotes: TickerQuote[]
+  openPositionCount: number
+  marketDataConfigured: boolean
 }
 
-export function PriceTicker({ quotes }: PriceTickerProps) {
+export function PriceTicker({
+  quotes,
+  openPositionCount,
+  marketDataConfigured,
+}: PriceTickerProps) {
+  if (openPositionCount === 0) {
+    return (
+      <div className="marquee-bar px-4 py-3 text-center text-sm text-white/60">
+        No open positions to quote.
+      </div>
+    )
+  }
+
+  if (!marketDataConfigured) {
+    return (
+      <div className="marquee-bar px-4 py-3 text-center text-sm text-white/60">
+        Set FINNHUB_API_KEY to enable live quotes.
+      </div>
+    )
+  }
+
   if (quotes.length === 0) {
     return (
       <div className="marquee-bar px-4 py-3 text-center text-sm text-white/60">
-        Quotes will appear here once market data is configured.
+        Fetching live quotes…
       </div>
     )
   }

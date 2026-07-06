@@ -24,6 +24,9 @@ import {
 import { sendDigestBatch, sendInviteEmail } from '#/lib/email'
 import {
   createFinnhubProvider,
+  fetchLiveQuotes,
+  getMarketDataProvider,
+  getQuotesForTickers,
   refreshQuotesForOpenCallouts,
 } from '#/lib/market-data'
 import {
@@ -36,26 +39,56 @@ import type { CalloutWithPerformance, TickerQuote } from '#/lib/types'
 async function loadPortfolioData(): Promise<{
   callouts: CalloutWithPerformance[]
   quotes: TickerQuote[]
+  marketDataConfigured: boolean
 }> {
   const allCallouts = await db
     .select()
     .from(callouts)
     .orderBy(desc(callouts.entryDate))
 
-  const quotes = await db.select().from(quoteCache)
-  const quoteMap = new Map(quotes.map((q) => [q.ticker, q]))
+  const openTickers = [
+    ...new Set(
+      allCallouts
+        .filter((callout) => callout.status === 'open')
+        .map((callout) => callout.ticker.toUpperCase()),
+    ),
+  ]
 
-  const enriched = allCallouts.map((c) =>
-    enrichCallout(c, quoteMap.get(c.ticker.toUpperCase())),
+  const provider = getMarketDataProvider()
+
+  if (provider && openTickers.length > 0) {
+    await fetchLiveQuotes(openTickers, provider)
+  }
+
+  const cachedQuotes =
+    openTickers.length > 0
+      ? await getQuotesForTickers(openTickers)
+      : []
+
+  const quoteMap = new Map(cachedQuotes.map((quote) => [quote.ticker, quote]))
+
+  const enriched = allCallouts.map((callout) =>
+    enrichCallout(callout, quoteMap.get(callout.ticker.toUpperCase()), 60_000),
   )
 
-  const tickerQuotes: TickerQuote[] = quotes.map((q) => ({
-    ticker: q.ticker,
-    price: q.price,
-    changePct: q.changePct,
-  }))
+  const tickerQuotes: TickerQuote[] = openTickers.flatMap((ticker) => {
+    const quote = quoteMap.get(ticker)
+    if (!quote) return []
 
-  return { callouts: enriched, quotes: tickerQuotes }
+    return [
+      {
+        ticker: quote.ticker,
+        price: quote.price,
+        changePct: quote.changePct,
+      },
+    ]
+  })
+
+  return {
+    callouts: enriched,
+    quotes: tickerQuotes,
+    marketDataConfigured: Boolean(provider),
+  }
 }
 
 export const getSessionFn = createServerFn({ method: 'GET' }).handler(
@@ -126,6 +159,7 @@ export const getDashboardFn = createServerFn({ method: 'GET' }).handler(
       callouts: data.callouts,
       quotes: data.quotes,
       summary: summarizePortfolio(data.callouts),
+      marketDataConfigured: data.marketDataConfigured,
     }
   },
 )
@@ -150,15 +184,22 @@ export const createCalloutFn = createServerFn({ method: 'POST' })
     const admin = await requireAdmin()
 
     const id = nanoid()
+    const ticker = data.ticker.toUpperCase()
+
     await db.insert(callouts).values({
       id,
-      ticker: data.ticker.toUpperCase(),
+      ticker,
       entryPrice: data.entryPrice,
       entryDate: new Date(data.entryDate),
       thesis: data.thesis ?? null,
       status: 'open',
       createdBy: admin.id,
     })
+
+    const provider = getMarketDataProvider()
+    if (provider) {
+      await fetchLiveQuotes([ticker], provider)
+    }
 
     return { id }
   })

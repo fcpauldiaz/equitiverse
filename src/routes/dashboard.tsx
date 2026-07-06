@@ -5,6 +5,7 @@ import { CalloutTable } from '#/components/ui/CalloutTable'
 import { PriceTicker } from '#/components/ui/PriceTicker'
 import { SectionTitle } from '#/components/ui/SectionTitle'
 import { StatCard } from '#/components/ui/StatCard'
+import { useLivePortfolio } from '#/hooks/useLivePortfolio'
 import { formatReturnPct } from '#/lib/performance'
 import { getDashboardFn, getSessionFn } from '#/server/functions'
 
@@ -24,10 +25,25 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function DashboardPage() {
-  const { user, callouts, quotes, summary } = Route.useLoaderData()
+  const initial = Route.useLoaderData()
+  const { callouts, quotes, summary } = useLivePortfolio({
+    callouts: initial.callouts,
+    quotes: initial.quotes,
+    summary: initial.summary,
+  })
 
   return (
-    <AppShell user={user} showTicker ticker={<PriceTicker quotes={quotes} />}>
+    <AppShell
+      user={initial.user}
+      showTicker
+      ticker={
+        <PriceTicker
+          quotes={quotes}
+          openPositionCount={summary.openCount}
+          marketDataConfigured={initial.marketDataConfigured}
+        />
+      }
+    >
       <section className="page-shell">
         <SectionTitle
           label="Portfolio"

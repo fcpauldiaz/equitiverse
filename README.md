@@ -59,9 +59,13 @@ UI follows the [EdgebyRS](https://www.edgebyrs.com/) visual language under the *
 
 ## Deploy
 
+Build with the included `Dockerfile` (Coolify, etc.):
+
 ```bash
 pnpm run build
 node .output/server/index.mjs
 ```
+
+Quotes are cached in the `quote_cache` SQLite table (60s during market hours, 15m off hours) to stay within Finnhub's free tier.
 
 Configure platform cron to hit `/api/cron/refresh-quotes` (every 5–10 min during market hours) and `/api/cron/send-digest?frequency=weekly`.
