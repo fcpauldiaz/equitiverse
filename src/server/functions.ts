@@ -37,6 +37,7 @@ import {
   getQuotesForTickers,
   refreshQuotesForOpenCallouts,
 } from '#/lib/market-data'
+import { parseSubscriberEmailsCsv } from '#/lib/subscriber-csv'
 import {
   calculateReturnPct,
   enrichCallout,
@@ -153,7 +154,7 @@ async function loadPortfolioData(): Promise<{
   const quoteMap = new Map(cachedQuotes.map((quote) => [quote.ticker, quote]))
 
   const enriched = allCallouts.map((callout) =>
-    enrichCallout(callout, quoteMap.get(callout.ticker.toUpperCase()), 60_000),
+    enrichCallout(callout, quoteMap.get(callout.ticker.toUpperCase())),
   )
 
   const tickerQuotes: TickerQuote[] = openTickers.flatMap((ticker) => {
@@ -370,18 +371,60 @@ export const getSubscribersFn = createServerFn({ method: 'GET' }).handler(
   },
 )
 
+async function inviteSubscriberByEmail(adminId: string, email: string) {
+  const normalized = email.toLowerCase()
+  const token = await createInviteToken(normalized, adminId)
+  const emailSent = await sendInviteEmail({ email: normalized, token })
+
+  return {
+    token,
+    inviteUrl: `${process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'}/invite/${token}`,
+    emailSent,
+  }
+}
+
 export const inviteSubscriberFn = createServerFn({ method: 'POST' })
   .validator(z.object({ email: z.string().email() }))
   .handler(async ({ data }) => {
     const admin = await requireAdmin()
-    const token = await createInviteToken(data.email, admin.id)
-    const sent = await sendInviteEmail({ email: data.email, token })
+    return inviteSubscriberByEmail(admin.id, data.email)
+  })
 
-    return {
-      token,
-      inviteUrl: `${process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'}/invite/${token}`,
-      emailSent: sent,
+export const inviteSubscribersCsvFn = createServerFn({ method: 'POST' })
+  .validator(z.object({ csv: z.string().min(1) }))
+  .handler(async ({ data }) => {
+    const admin = await requireAdmin()
+    const { emails, invalid } = parseSubscriberEmailsCsv(data.csv)
+
+    const skipped: Array<{ email: string; reason: 'already_registered' | 'disabled' }> =
+      []
+    let invited = 0
+    let emailsSent = 0
+
+    for (const email of emails) {
+      const [existing] = await db
+        .select({ disabledAt: users.disabledAt })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+
+      if (existing) {
+        skipped.push({
+          email,
+          reason: existing.disabledAt ? 'disabled' : 'already_registered',
+        })
+        continue
+      }
+
+      const result = await inviteSubscriberByEmail(admin.id, email)
+      invited += 1
+
+      if (result.emailSent) {
+        emailsSent += 1
+      }
     }
+
+    return { invited, emailsSent, skipped, invalid }
   })
 
 export const disableSubscriberFn = createServerFn({ method: 'POST' })

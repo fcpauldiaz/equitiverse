@@ -1,4 +1,5 @@
 import type { Callout, QuoteCacheEntry } from '#/db/schema'
+import { QUOTE_STALE_AFTER_MS } from '#/lib/market-data'
 import type { CalloutWithPerformance, PortfolioSummary } from '#/lib/types'
 
 export function calculateReturnPct(
@@ -11,7 +12,7 @@ export function calculateReturnPct(
 export function enrichCallout(
   callout: Callout,
   quote: QuoteCacheEntry | undefined,
-  staleAfterMs = 15 * 60 * 1000,
+  staleAfterMs = QUOTE_STALE_AFTER_MS,
 ): CalloutWithPerformance {
   const now = Date.now()
   const quoteFetchedAt = quote ? new Date(quote.fetchedAt) : null

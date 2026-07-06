@@ -8,6 +8,7 @@ import type { TickerQuote } from '#/lib/types'
 export const QUOTE_POLL_INTERVAL_MS = 15_000
 export const QUOTE_CACHE_TTL_MARKET_MS = 60_000
 export const QUOTE_CACHE_TTL_OFF_MARKET_MS = 900_000
+export const QUOTE_STALE_AFTER_MS = 24 * 60 * 60 * 1000
 
 type FinnhubQuoteResponse = {
   c: number
